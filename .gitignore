@@ -102,3 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# PyCharm
+.idea/
+/vk_config.v2.json
+data/
+vk_config.v2.json
