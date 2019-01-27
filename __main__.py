@@ -2,7 +2,7 @@ import sys
 import traceback
 import threading
 from queue import Queue, Empty
-from types import Iterator
+from typing import Iterator
 
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEvent
 from vk_api.bot_longpoll import VkBotEventType as et
@@ -32,7 +32,7 @@ def listen(q: Queue) -> Iterator[VkBotEvent]:
     while True:
         try:
             event = q.get_nowait()
-            print("THREADING EVENT:", event, file=sys.stderr)
+            print(f"\x1b[34mTHREADING EVENT: {event}\x1b[0m")
             if event:
                 if type(event) == dict:
                     yield event
@@ -50,10 +50,11 @@ def bot_thread(q: Queue):
     try:
         for event in listen(q):
             try:
-                if event.type == BALANCE_UPDATE:
-                    pass
+                if type(event) == dict:  # BALANCE EVENT
+                    if event.get("type") == BALANCE_UPDATE or False:
+                        print(f"\x1b[32mBALANCE UPDATE: {event}\x1b[0m")
 
-                if event.type == et.MESSAGE_NEW:
+                elif event.type == et.MESSAGE_NEW:
                     print(event.obj.text)
             except BaseException as err:
                 print('\n')

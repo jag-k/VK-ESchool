@@ -1,0 +1,6 @@
+ujson
+aiohttp
+beautifulsoup4
+vk_api
+tinydb
+aiotinydb  # https://github.com/ASMfreaK/aiotinydb
