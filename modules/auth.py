@@ -15,10 +15,8 @@ except Exception as err:
 
 class Bot:
     def __init__(self, event: VkBotEvent):
-        if "api" not in dir(self):
-            raise AttributeError("Bot has no API. Use Bot.init_bot(api, group_id) before use bot class")
         self.event = event
-        print(dict(event))
+        self.msg = event.object
 
     @classmethod
     def send_msg(cls, message, domain=None, user_id=None, user_ids=None, peer_id=None, chat_id=None, **kwargs):
@@ -35,6 +33,9 @@ class Bot:
 
     def send_forward(self, message, **kwargs):
         return self.send_msg(message, peer_id=self.msg.peer_id, **kwargs)
+
+    def __getattr__(self, item):
+        return self.msg.__getattr__(item)
 
 
 user_id = session.token.get("user_id")

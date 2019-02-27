@@ -1,3 +1,4 @@
+from os.path import join
 import configparser
 import json
 
@@ -22,9 +23,16 @@ vk_data = SECRET.get('vk_data')
 # Constants and Types
 
 SLEEP_TIME = 30
-DB_NAME = "cards_data.json"
+CARDS_DB = "cards_data"
+USER_STATES_DB = "user_states_data"
+USER_CARDS_DB = "user_cards_data"
+
 BALANCE_UPDATE = "bl"
 
+for i in filter(lambda x: x.lower().endswith("_db"), dir()):
+    folder = "database"
+    extension = "json"
+    exec(f"{i} = '{join(folder, eval(i))}.{extension}'")
 
 if __name__ == '__main__':
     print(SETTINGS)

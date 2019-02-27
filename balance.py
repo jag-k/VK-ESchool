@@ -6,6 +6,7 @@ from sys import stderr
 
 import aiohttp
 from bs4 import BeautifulSoup as bs
+from requests import post
 
 from tinydb import TinyDB, Query
 from aiotinydb import AIOTinyDB
@@ -13,6 +14,26 @@ from config import *
 
 
 # Functions
+def sync_get_balance(card):
+    req = post("http://xn--58-6kc3bfr2e.xn--p1ai/ajax/",
+                        data={"card": card, "act": "FreeCheckBalance"},
+                        headers={
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        })
+    if req.status_code == 200:
+        result = req.json()
+        if result.get('type', "error") == "error":
+            print(f"Card {card} not found", file=stderr)
+
+        if result and result.get("type") == "balance":
+            soup = bs(result.get("text"), features="lxml")
+            balances = map(lambda x: x.find("span").contents[0], soup.find_all("div", {"class": "name"}))
+            balances_value = map(lambda x: float(x.find("span").contents[0].strip(" руб.")),
+                                 soup.find_all("div", {"class": "residue"}))
+
+            return {"card": card, "balance": dict(zip(balances, balances_value))}
+        return result
+
 
 async def get_balance(session, card):
     print(f"\x1b[33mSearch {card}\x1b[0m")
@@ -58,7 +79,7 @@ async def process_card(session, card, cards_data, q):
                 "old_balance": cards_data.get(Query().card == card)
             })
 
-        async with AIOTinyDB(DB_NAME) as db:
+        async with AIOTinyDB(CARDS_DB) as db:
             db.upsert(res, Query().card == card)
         return res
 
@@ -67,7 +88,7 @@ async def check_cards_balance(q):
     async with aiohttp.ClientSession() as session:
         while True:
 
-            async with AIOTinyDB(DB_NAME) as db:
+            async with AIOTinyDB(CARDS_DB) as db:
 
                 tasks = [
                     asyncio.ensure_future(

@@ -43,8 +43,7 @@ def bot_thread(q: Queue):
                         print(f"\x1b[32mBALANCE UPDATE: {event}\x1b[0m")
 
                 elif event.type == et.MESSAGE_NEW:
-                    print(event.obj.text)
-                    message_handler(event, Bot(event))
+                    message_handler(Bot(event))
             except BaseException as err:
                 print('\n')
                 traceback.print_exc()
