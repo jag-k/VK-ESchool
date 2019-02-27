@@ -7,26 +7,14 @@ from typing import Iterator
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEvent
 from vk_api.bot_longpoll import VkBotEventType as et
 
-from modules.auth import api, session, user_id, group_id
+from modules.auth import api, session, user_id, group_id, Bot
+from modules.handler import message_handler
 from balance import balanced_thread, get_balance, BALANCE_UPDATE
 
 longpoll = VkBotLongPoll(session, group_id, wait=1)
 
 
 # Functions
-
-def send_msg(message, domain=None, user_id=None, user_ids=None, peer_id=None, chat_id=None, **kwargs):
-    return api.messages.send(
-        message=message,
-        group_id=group_id,
-        domain=domain,
-        user_id=user_id,
-        user_ids=user_ids,
-        peer_id=peer_id,
-        chat_id=chat_id,
-        **kwargs
-    )
-
 
 def listen(q: Queue) -> Iterator[VkBotEvent]:
     while True:
@@ -45,7 +33,7 @@ def listen(q: Queue) -> Iterator[VkBotEvent]:
 
 def bot_thread(q: Queue):
     print("Bot Started")
-    send_msg(message="Бот запущен", user_id=user_id)
+    Bot.send_msg(message="Бот запущен", user_id=user_id)
 
     try:
         for event in listen(q):
@@ -56,11 +44,12 @@ def bot_thread(q: Queue):
 
                 elif event.type == et.MESSAGE_NEW:
                     print(event.obj.text)
+                    message_handler(event, Bot(event))
             except BaseException as err:
                 print('\n')
                 traceback.print_exc()
                 error_msg = "ERROR (%s): %s" % (type(err).__name__, err)
-                send_msg(message=error_msg, user_id=user_id)
+                Bot.send_msg(message=error_msg, user_id=user_id)
 
     except ConnectionError:
         print("CONNECTION ERROR", file=sys.stderr)

@@ -1,1 +1,1 @@
-import modules.auth as auth
+from modules import auth, handler

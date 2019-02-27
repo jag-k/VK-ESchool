@@ -27,12 +27,18 @@ while flag:
         print("ОШИБКА! Вы ввели не верные данные, повторите ввод", file=sys.stderr)
 
 else:
+    groups = api.groups.get(extended=True, filter="admin")
+    print(f"У Вас есть {groups.get('count')} сообществ, которые Вы можете использовать:")
+    print(*map(lambda x: f'Сообщество "{x.get("name")}" (http://vk.com/{x.get("screen_name")}):\n'
+    f'    ID: {x.get("id")}', groups.get("items")), sep="\n\n")
+
     group_id = input("Введите ID группы: ")
     while True:
         try:
             res = api.groups.getById(group_id=group_id, fields="is_admin")[0]
             if res["is_admin"]:
                 print(f'Бот привязан у группе "{res["name"]}" (https://vk.com/{res["screen_name"]})')
+                group_id = res["id"]
                 break
             print(f'Вы не являетесь администратором группы "{res["name"]}", введите ID другой группы',
                   file=sys.stderr)

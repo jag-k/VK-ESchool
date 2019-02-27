@@ -19,6 +19,13 @@ for key in secret:
 vk_data = SECRET.get('vk_data')
 
 
+# Constants and Types
+
+SLEEP_TIME = 30
+DB_NAME = "cards_data.json"
+BALANCE_UPDATE = "bl"
+
+
 if __name__ == '__main__':
     print(SETTINGS)
     print(SECRET)

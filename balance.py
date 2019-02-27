@@ -9,12 +9,7 @@ from bs4 import BeautifulSoup as bs
 
 from tinydb import TinyDB, Query
 from aiotinydb import AIOTinyDB
-
-# Constants and Types
-
-SLEEP_TIME = 30
-DB_NAME = "cards_data.json"
-BALANCE_UPDATE = "bl"
+from config import *
 
 
 # Functions
