@@ -29,6 +29,8 @@ USER_CARDS_DB = "user_cards_data"
 
 BALANCE_UPDATE = "bl"
 
+USER_SERVER_ERROR_STRING = "Тут какая-то ошибка на сервере случилась.. Попробуйте снова попзже)"
+
 for i in filter(lambda x: x.lower().endswith("_db"), dir()):
     folder = "database"
     extension = "json"

@@ -8,10 +8,11 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEvent
 from vk_api.bot_longpoll import VkBotEventType as et
 
 from modules.auth import api, session, user_id, group_id, Bot
-from modules.handler import message_handler
+from modules.handler import message_handler, TinyDB, Query
+from config import *
 from balance import balanced_thread, get_balance, BALANCE_UPDATE
 
-longpoll = VkBotLongPoll(session, group_id, wait=1)
+longpoll = VkBotLongPoll(session, group_id, wait=10)
 
 
 # Functions
@@ -41,6 +42,17 @@ def bot_thread(q: Queue):
                 if type(event) == dict:  # BALANCE EVENT
                     if event.get("type") == BALANCE_UPDATE or False:
                         print(f"\x1b[32mBALANCE UPDATE: {event}\x1b[0m")
+                        print("Event", event)
+                        msg = "💰 ИЗМЕНЕНИЕ БАЛАНСА: \n" +\
+                              '\n'.join(map(lambda x: f"  ► {x}: "
+                              f"{event.get('new_balance', {}).get('balance', {}).get(x, 0)}₽ ({event['change'][x]}₽)",
+                                            event['change'])) +\
+                            '\n\n💵 Для проверки баланса, напишите "баланс".\n' \
+                            '📃 Для дополнительной информации, отправьте "помощь"'
+
+                        with TinyDB(USER_CARDS_DB) as db:
+                            for user in db.search(Query.card == event['card']):
+                                Bot.send_msg(msg, user_id=user['user_id'])
 
                 elif event.type == et.MESSAGE_NEW:
                     message_handler(Bot(event))
@@ -57,7 +69,7 @@ def bot_thread(q: Queue):
         print("System Exit")
 
     finally:
-        send_msg(message="Бот остановлен (финальная отправка в лс)", user_id=user_id)
+        Bot.send_msg(message="Бот остановлен (финальная отправка в лс)", user_id=user_id)
         print("Bot Stopped", file=sys.stderr)
 
 

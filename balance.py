@@ -14,6 +14,19 @@ from config import *
 
 
 # Functions
+
+def expense_change(old, new):
+    res = {}
+    old, new = old['balance'], new['balance']
+    for n in new:
+        res[n] = float(new[n]) - float(old.get(n, 0))
+
+    for o in old:
+        if o not in res:
+            res[o] = float(new.get(o, 0)) - float(old[o])
+    return res
+
+
 def sync_get_balance(card):
     req = post("http://xn--58-6kc3bfr2e.xn--p1ai/ajax/",
                         data={"card": card, "act": "FreeCheckBalance"},
@@ -72,11 +85,15 @@ async def get_balance(session, card):
 async def process_card(session, card, cards_data, q):
     res = await get_balance(session, card)  # type: dict
     if res and not res.get("type") == "error":
-        if res["balance"] != cards_data.get(Query().card == card)['balance']:
+        old_balance = list(filter(lambda x: x.get("card") == card, cards_data))[0]
+        print(old_balance)
+        if res["balance"] != old_balance['balance']:
             q.put_nowait({
                 "type": BALANCE_UPDATE,
                 "new_balance": res,
-                "old_balance": cards_data.get(Query().card == card)
+                "old_balance": old_balance,
+                "change": expense_change(old_balance, res),
+                "card": card,
             })
 
         async with AIOTinyDB(CARDS_DB) as db:
@@ -89,15 +106,16 @@ async def check_cards_balance(q):
         while True:
 
             async with AIOTinyDB(CARDS_DB) as db:
+                dat = db.all()
 
-                tasks = [
-                    asyncio.ensure_future(
-                        process_card(session, card['card'], db, q)
-                    ) for card in db
-                ]
-                res = await asyncio.gather(*tasks)
-                print(res)
-                await asyncio.sleep(SLEEP_TIME)
+            tasks = [
+                asyncio.ensure_future(
+                    process_card(session, card['card'], dat, q)
+                ) for card in dat
+            ]
+            res = await asyncio.gather(*tasks)
+            print(res)
+            await asyncio.sleep(SLEEP_TIME)
 
 
 def balanced_thread(q: Queue):

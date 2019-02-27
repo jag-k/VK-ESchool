@@ -69,7 +69,7 @@ def start(state: State, bot: Bot):
 @state_handler(1)
 def get_card_number(state: State, bot: Bot):
     user_id = bot.from_id
-    error_msg = "Данные карты не верны! Попроьбуйте ввести номер карты снова.\n\n"\
+    error_msg = "⚠️Данные карты не верны! Попроьбуйте ввести номер карты снова.\n\n"\
                 "Подсказка: номер карты в формате **-******, где * это цифры\n"\
                 "Например: 39-212345"
     text = remove_from_string(strip(bot.text.strip(), '"', '"'), '-', "_", " ")
@@ -80,13 +80,7 @@ def get_card_number(state: State, bot: Bot):
         res = sync_get_balance(text)  # type: dict
         if res and not res.get("type") == "error":
             print("OK")
-            msg = f"Ваш номер карты: {res.get('card')}\n" \
-                  f"Текущий баланс по счетам:\n" + \
-                  '\n'.join(
-                      map(lambda b:
-                          f"  ►  {b}: {res['balance'][b]}",
-                          res.get("balance", {}))) + "\n\n" \
-                                                     "Для проверки баланса, напишите \"баланс\"."
+            msg = to_balance_string(res)
 
             with TinyDB(CARDS_DB) as db:
                 db.upsert(res, Query.card == res.get('card'))
@@ -95,9 +89,30 @@ def get_card_number(state: State, bot: Bot):
             state.set_state(2, bot)
             bot.send_forward(msg)
             return
+
+    elif text.lower() in ("о приложении", "о боте", "помощь", "?", "справка"):
+        bot.send_forward('ℹ️Данный бот создан для отслеживания своего баланса с сервиса '
+                         '"Электронная школа" (http://школа58.рф). Для этого Вам нужно ввести номер своей карты, '
+                         'и в дальнейшем Вам будут приходить уведомления об изменении баланса счёта.\n\n'
+                         'Так же, здесь Вы можете проверять свой баланс в любое время суток.')
+        return
     bot.send_forward(error_msg)
 
 
 @state_handler(2)
 def main_branch(state: State, bot: Bot):
-    bot.send_forward("Ну тип харош")  # TODO: Доделать баланс и прочую херню
+    text = strip(bot.text.strip(), '!', '/').lower()
+    if text in ('balance', 'баланс', ',fkfyc'):
+        try:
+            bot.send_forward(
+                to_balance_string(sync_get_balance(user_card.get(Query.user_id == bot.from_id).get("card")))
+            )
+        except Exception as err:
+            bot.send_forward(USER_SERVER_ERROR_STRING)
+            raise err
+    elif text in ("gjvjon", "help", "?", "h", "помощь", "справка"):
+        bot.send_forward("Ну тут должен быть HELP_STRING, но значит [id173996641|КТО-ТО] это не доделал")
+        # TODO: Сделать HELP_STRING
+    else:
+        bot.send_forward("⚠️ Такой комманды не существует! "
+                         "Повторите снова или напишите \"помощь\" для получения справки.")
