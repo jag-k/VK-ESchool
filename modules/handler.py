@@ -4,6 +4,8 @@ from tinydb import TinyDB, Query
 from .auth import Bot
 from .helper import *
 from balance import sync_get_balance
+from vk_api.keyboard import VkKeyboard as Keyboard, VkKeyboardColor as Color
+
 
 user_state = TinyDB(USER_STATES_DB)
 user_card = TinyDB(USER_CARDS_DB)
@@ -56,20 +58,34 @@ def message_handler(bot: Bot):
     return State.use_func(user.get("state"), bot)
 
 
+# KEYBOARDS
+
+MAIN_KB = Keyboard()
+MAIN_KB.add_button("Баланс", Color.POSITIVE)
+MAIN_KB.add_button("Перепривязать карту", Color.DEFAULT)
+MAIN_KB.add_line()
+MAIN_KB.add_button("Справка", Color.PRIMARY)
+
+HELP_ONLY_KB = Keyboard()
+HELP_ONLY_KB.add_button("Справка", Color.PRIMARY)
+
+
 # STATES
 
 @state_handler(0)
 def start(state: State, bot: Bot):
     print("State:", state.get_state(bot))
+
     bot.send_forward("Здравствуйте!) Для начала введите номер карты в формате **-******, где * это цифры\n\n"
-                     "Например: 39-212345")
+                     "Например: 39-212345", keyboard=HELP_ONLY_KB)
     state.set_state(1, bot)
 
 
 @state_handler(1)
 def get_card_number(state: State, bot: Bot):
+
     user_id = bot.from_id
-    error_msg = "⚠️Данные карты не верны! Попроьбуйте ввести номер карты снова.\n\n"\
+    error_msg = "⚠ ️Данные карты не верны! Попроьбуйте ввести номер карты снова.\n\n"\
                 "Подсказка: номер карты в формате **-******, где * это цифры\n"\
                 "Например: 39-212345"
     text = remove_from_string(strip(bot.text.strip(), '"', '"'), '-', "_", " ")
@@ -87,32 +103,43 @@ def get_card_number(state: State, bot: Bot):
 
             user_card.upsert({"user_id": user_id, "card": res.get('card')}, Query.user_id == user_id)
             state.set_state(2, bot)
-            bot.send_forward(msg)
+            bot.send_forward(msg, kb=MAIN_KB)
             return
 
     elif text.lower() in ("о приложении", "о боте", "помощь", "?", "справка"):
-        bot.send_forward('ℹ️Данный бот создан для отслеживания своего баланса с сервиса '
+        bot.send_forward('ℹ ️Данный бот создан для отслеживания своего баланса с сервиса '
                          '"Электронная школа" (http://школа58.рф). Для этого Вам нужно ввести номер своей карты, '
                          'и в дальнейшем Вам будут приходить уведомления об изменении баланса счёта.\n\n'
-                         'Так же, здесь Вы можете проверять свой баланс в любое время суток.')
+                         'Так же, здесь Вы можете проверять свой баланс в любое время суток.', keyboard=HELP_ONLY_KB)
         return
-    bot.send_forward(error_msg)
+    bot.send_forward(error_msg, keyboard=HELP_ONLY_KB)
 
 
 @state_handler(2)
 def main_branch(state: State, bot: Bot):
+
     text = strip(bot.text.strip(), '!', '/').lower()
     if text in ('balance', 'баланс', ',fkfyc'):
         try:
             bot.send_forward(
-                to_balance_string(sync_get_balance(user_card.get(Query.user_id == bot.from_id).get("card")))
+                to_balance_string(sync_get_balance(user_card.get(Query.user_id == bot.from_id).get("card"))),
+                keyboard=MAIN_KB
             )
         except Exception as err:
             bot.send_forward(USER_SERVER_ERROR_STRING)
             raise err
+
+    elif text in ("привязать новую карту", "перепривязать карту", "новая карта", "новый номер", "привязать новый номер",
+                  "перепривязать номер"):
+        bot.send_forward("Введите номер карты в формате **-******, где * это цифры\n\n"
+                         "Например: 39-212345", kb=HELP_ONLY_KB)
+        state.set_state(1, bot)
+
     elif text in ("gjvjon", "help", "?", "h", "помощь", "справка"):
-        bot.send_forward("Ну тут должен быть HELP_STRING, но значит [id173996641|КТО-ТО] это не доделал")
+        bot.send_forward("Ну тут должен быть HELP_STRING, но значит [id173996641|КТО-ТО] это не доделал",
+                         keyboard=MAIN_KB)
         # TODO: Сделать HELP_STRING
     else:
         bot.send_forward("⚠️ Такой комманды не существует! "
-                         "Повторите снова или напишите \"помощь\" для получения справки.")
+                         "Повторите снова или напишите \"помощь\" для получения справки.",
+                         keyboard=MAIN_KB)

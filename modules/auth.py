@@ -1,6 +1,7 @@
 import vk_api
 from config import vk_data
 from vk_api.bot_longpoll import VkBotEvent
+from vk_api.keyboard import VkKeyboard as Keyboard
 
 try:
     session = vk_api.VkApi(vk_data["login"], vk_data["password"], api_version="5.89")
@@ -20,6 +21,10 @@ class Bot:
 
     @classmethod
     def send_msg(cls, message, domain=None, user_id=None, user_ids=None, peer_id=None, chat_id=None, **kwargs):
+        kb = kwargs.get("keyboard", kwargs.get("kb"))
+        if kb and type(kb) == Keyboard:
+            kwargs["keyboard"] = kb.get_keyboard()
+
         return api.messages.send(
             message=message,
             group_id=group_id,
