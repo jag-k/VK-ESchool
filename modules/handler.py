@@ -32,12 +32,12 @@ class State:
 
     @staticmethod
     def set_state(state, bot: Bot):
-        id = bot.from_id
+        user_id = bot.from_id
         user = {
-            "user_id": id,
+            "user_id": user_id,
             "state": state
         }
-        return user_state.upsert(user, Query.user_id == id)
+        return user_state.upsert(user, Query.user_id == user_id)
 
     @staticmethod
     def get_state(bot: Bot):
@@ -45,11 +45,11 @@ class State:
 
 
 def message_handler(bot: Bot):
-    id = bot.from_id
-    user = user_state.get(Query.user_id == id)
+    user_id = bot.from_id
+    user = user_state.get(Query.user_id == user_id)
     if not user:
         user = {
-            "user_id": id,
+            "user_id": user_id,
             "state": 0
         }
         user_state.insert(user)
@@ -76,6 +76,9 @@ BOOL_KB = Keyboard(True)
 BOOL_KB.add_button("Да", Color.NEGATIVE)
 BOOL_KB.add_button("Нет", Color.POSITIVE)
 
+START_KB = Keyboard(True)
+START_KB.add_button("Начать", Color.PRIMARY, {"command": "start"})
+
 
 # STATES
 
@@ -98,11 +101,9 @@ def get_card_number(state: State, bot: Bot):
     text = remove_from_string(strip(bot.text.strip(), '"', '"'), '-', "_", " ")
     if text.isdigit() and len(text) == 8:
         text = text[0:2] + '-' + text[2:]
-        print("CArd:", text)
 
         res = sync_get_balance(text)  # type: dict
         if res and not res.get("type") == "error":
-            print("OK")
             msg = to_balance_string(res)
 
             with TinyDB(CARDS_DB) as db:
@@ -160,5 +161,22 @@ def main_branch(state: State, bot: Bot):
 
 @state_handler(3)
 def unsubscribe(state: State, bot: Bot):  # TODO: Сделать отписку
-    bot.send_forward("Заглушка, данный функционал пока не работает", kb=MAIN_KB)
-    state.set_state(2, bot)
+    text = bot.text.lower().strip()
+    user_id = bot.from_id
+    if text in ("да", "yes", "y", "д"):
+        with TinyDB(CARDS_DB) as db:
+            for i in db:
+                card = i.get("card")
+                if user_card.count(Query.card == card) == 1:
+
+                    db.remove(doc_ids=[i.doc_id])
+        user_card.remove(Query.user_id == user_id)
+        user_state.remove(Query.user_id == user_id)
+
+        bot.send_forward("Вы успешно удалены из базы данных! Для начала работы, напишите что-нибудь", kb=START_KB)
+    else:
+        bot.send_forward("Вы отменили отписку."
+                         "\n\n💵 Для проверки баланса, напишите \"баланс\".\n"
+                         "📃 Для дополнительной информации, отправьте \"помощь\"",
+                         kb=MAIN_KB)
+        state.set_state(2, bot)
