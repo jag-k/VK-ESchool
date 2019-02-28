@@ -51,5 +51,5 @@ else:
 if not os.path.isdir(PATH):
     os.mkdir(PATH)
 
-with open(os.path.join(PATH, FILE), 'w') as file:
+with open(os.path.join(PATH, FILE), 'w', encoding="utf-8") as file:
     file.write(PATTERN % (login, pwd, group_id))
