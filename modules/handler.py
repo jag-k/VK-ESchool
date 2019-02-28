@@ -66,9 +66,15 @@ MAIN_KB.add_button("Перепривязать карту", Color.DEFAULT)
 MAIN_KB.add_line()
 MAIN_KB.add_button("Справка", Color.PRIMARY)
 MAIN_KB.add_button("О приложении", Color.PRIMARY)
+MAIN_KB.add_line()
+MAIN_KB.add_button("Отписаться", Color.NEGATIVE)
 
 HELP_ONLY_KB = Keyboard()
 HELP_ONLY_KB.add_button("Справка", Color.PRIMARY)
+
+BOOL_KB = Keyboard(True)
+BOOL_KB.add_button("Да", Color.NEGATIVE)
+BOOL_KB.add_button("Нет", Color.POSITIVE)
 
 
 # STATES
@@ -134,6 +140,11 @@ def main_branch(state: State, bot: Bot):
                          "Например: 39-212345", kb=HELP_ONLY_KB)
         state.set_state(1, bot)
 
+    elif text in ("cancel", "break", "unsubscribe", "отмена", "отписка", "удалить", "отписаться"):
+        bot.send_forward("Вы точно хотите отписаться от рассылки и удалить данные о своей карте у бота?",
+                         kb=BOOL_KB)
+        state.set_state(3, bot)
+
     elif text in ("gjvjon", "help", "?", "h", "помощь", "справка"):
         bot.send_forward(HELP_STRING, kb=MAIN_KB)
 
@@ -145,3 +156,9 @@ def main_branch(state: State, bot: Bot):
         bot.send_forward("⚠️ Такой комманды не существует! "
                          "Повторите снова или напишите \"помощь\" для получения справки.",
                          kb=MAIN_KB)
+
+
+@state_handler(3)
+def unsubscribe(state: State, bot: Bot):  # TODO: Сделать отписку
+    bot.send_forward("Заглушка, данный функционал пока не работает", kb=MAIN_KB)
+    state.set_state(2, bot)
