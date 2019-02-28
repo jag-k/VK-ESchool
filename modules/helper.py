@@ -26,7 +26,11 @@ def to_balance_string(data):
                f"💰 Текущий баланс по счетам:\n\n" + \
            '\n'.join(
                map(lambda b:
-                   f"   ► {b}: {data['balance'][b]}₽",
+                   f"   ► {b}: {strip_zero(data['balance'][b])}₽",
                    data.get("balance", {}))) + \
            "\n\n💵 Для проверки баланса, напишите \"баланс\".\n"\
            "📃 Для дополнительной информации, отправьте \"помощь\""
+
+
+def strip_zero(numb: float):
+    return int(numb) if numb.is_integer() else numb
