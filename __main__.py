@@ -34,7 +34,7 @@ def listen(q: Queue) -> Iterator[VkBotEvent]:
 
 def bot_thread(q: Queue):
     print("Bot Started")
-    Bot.send_msg(message="Бот запущен", user_id=user_id)
+    # Bot.send_msg(message="Бот запущен", user_id=user_id)
 
     try:
         for event in listen(q):
