@@ -107,4 +107,5 @@ venv.bak/
 .idea/
 /vk_config.v2.json
 data/
+database/*
 vk_config.v2.json
