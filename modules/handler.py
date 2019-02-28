@@ -65,6 +65,7 @@ MAIN_KB.add_button("Баланс", Color.POSITIVE)
 MAIN_KB.add_button("Перепривязать карту", Color.DEFAULT)
 MAIN_KB.add_line()
 MAIN_KB.add_button("Справка", Color.PRIMARY)
+MAIN_KB.add_button("О приложении", Color.PRIMARY)
 
 HELP_ONLY_KB = Keyboard()
 HELP_ONLY_KB.add_button("Справка", Color.PRIMARY)
@@ -106,11 +107,9 @@ def get_card_number(state: State, bot: Bot):
             bot.send_forward(msg, kb=MAIN_KB)
             return
 
-    elif text.lower() in ("о приложении", "о боте", "помощь", "?", "справка"):
-        bot.send_forward('ℹ ️Данный бот создан для отслеживания своего баланса с сервиса '
-                         '"Электронная школа" (http://школа58.рф). Для этого Вам нужно ввести номер своей карты, '
-                         'и в дальнейшем Вам будут приходить уведомления об изменении баланса счёта.\n\n'
-                         'Так же, здесь Вы можете проверять свой баланс в любое время суток.', keyboard=HELP_ONLY_KB)
+    elif text.lower() in ("о приложении", "о программе", "о боте", "about", "что это такое",
+                          "для чего", "для чего это", "для чего это нужно", "?", "справка", "помощь"):
+        bot.send_forward(ABOUT_STRING, keyboard=HELP_ONLY_KB)
         return
     bot.send_forward(error_msg, keyboard=HELP_ONLY_KB)
 
@@ -123,7 +122,7 @@ def main_branch(state: State, bot: Bot):
         try:
             bot.send_forward(
                 to_balance_string(sync_get_balance(user_card.get(Query.user_id == bot.from_id).get("card"))),
-                keyboard=MAIN_KB
+                kb=MAIN_KB
             )
         except Exception as err:
             bot.send_forward(USER_SERVER_ERROR_STRING)
@@ -136,10 +135,13 @@ def main_branch(state: State, bot: Bot):
         state.set_state(1, bot)
 
     elif text in ("gjvjon", "help", "?", "h", "помощь", "справка"):
-        bot.send_forward("Ну тут должен быть HELP_STRING, но значит [id173996641|КТО-ТО] это не доделал",
-                         keyboard=MAIN_KB)
-        # TODO: Сделать HELP_STRING
+        bot.send_forward(HELP_STRING, kb=MAIN_KB)
+
+    elif strip(text, "?", '.', "!") in ("о приложении", "о программе", "о боте", "about", "что это такое",
+                                        "для чего", "для чего это", "для чего это нужно"):
+        bot.send_forward(ABOUT_STRING, kb=MAIN_KB)
+
     else:
         bot.send_forward("⚠️ Такой комманды не существует! "
                          "Повторите снова или напишите \"помощь\" для получения справки.",
-                         keyboard=MAIN_KB)
+                         kb=MAIN_KB)
