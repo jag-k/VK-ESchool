@@ -1,7 +1,4 @@
-import sys
-import traceback
-import threading
-from queue import Queue, Empty
+from queue import Empty
 from typing import Iterator
 
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEvent
@@ -11,7 +8,7 @@ from vk_api.exceptions import ApiError
 from modules.auth import api, session, user_id, group_id, Bot
 from modules.handler import message_handler, TinyDB, Query
 from config import *
-from balance import balanced_thread, get_balance, BALANCE_UPDATE
+from balance import BALANCE_UPDATE
 
 longpoll = VkBotLongPoll(session, group_id, wait=10)
 thread = Thread("bot")
@@ -36,7 +33,7 @@ def listen(q: Queue) -> Iterator[VkBotEvent]:
 
 @thread.add_thread("Bot Thread")
 def bot_thread(q: Queue):
-    print("Bot Started")
+    print("\x1b[32;1mBot Started\x1b[0m")
     try:
         # api.messages.send(message="Бот запущен")
         Bot.send_msg(message="Бот запущен", user_id=user_id)
