@@ -1,7 +1,6 @@
 import asyncio
-import threading
 import ujson
-from queue import Queue
+from queue import Empty
 from sys import stderr
 
 import aiohttp
@@ -11,6 +10,8 @@ from requests import post
 from tinydb import TinyDB, Query
 from aiotinydb import AIOTinyDB
 from config import *
+
+thread = Thread("bot")
 
 
 # Functions
@@ -83,6 +84,14 @@ async def get_balance(session, card):
 
 
 async def process_card(session, card, cards_data, q):
+    try:
+        event = q.get_nowait()
+        print("EVENT IN THREAD", event)
+        if type(event) == SystemExit:
+            sys.exit(0)
+    except Empty:
+        pass
+
     res = await get_balance(session, card)  # type: dict
     if res and not res.get("type") == "error":
         old_balance = list(filter(lambda x: x.get("card") == card, cards_data))[0]
@@ -103,8 +112,7 @@ async def process_card(session, card, cards_data, q):
 
 async def check_cards_balance(q):
     async with aiohttp.ClientSession() as session:
-        while True:
-
+        while q.run:
             async with AIOTinyDB(CARDS_DB) as db:
                 dat = db.all()
 
@@ -115,9 +123,13 @@ async def check_cards_balance(q):
             ]
             res = await asyncio.gather(*tasks)
             print(res)
+
+            if not q.run:
+                break
             await asyncio.sleep(SLEEP_TIME)
 
 
+@thread.add_thread("Balance Thread")
 def balanced_thread(q: Queue):
     ioloop = asyncio.new_event_loop()
     ioloop.run_until_complete(check_cards_balance(q))
@@ -125,11 +137,7 @@ def balanced_thread(q: Queue):
 
 
 def main():
-    q = Queue()
-    balance = threading.Thread(target=balanced_thread, args=(q, ))
-    balance.start()
-
-    q.join()
+    thread.run()
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ from typing import Iterator
 
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEvent
 from vk_api.bot_longpoll import VkBotEventType as et
+from vk_api.exceptions import ApiError
 
 from modules.auth import api, session, user_id, group_id, Bot
 from modules.handler import message_handler, TinyDB, Query
@@ -13,12 +14,13 @@ from config import *
 from balance import balanced_thread, get_balance, BALANCE_UPDATE
 
 longpoll = VkBotLongPoll(session, group_id, wait=10)
+thread = Thread("bot")
 
 
 # Functions
 
 def listen(q: Queue) -> Iterator[VkBotEvent]:
-    while True:
+    while q.run:
         try:
             event = q.get_nowait()
             print(f"\x1b[34mTHREADING EVENT: {event}\x1b[0m")
@@ -32,10 +34,20 @@ def listen(q: Queue) -> Iterator[VkBotEvent]:
         yield from longpoll.check()
 
 
+@thread.add_thread("Bot Thread")
 def bot_thread(q: Queue):
     print("Bot Started")
-    api.messages.send(message="Бот запущен")
-    # Bot.send_msg(message="Бот запущен", user_id=user_id)
+    try:
+        # api.messages.send(message="Бот запущен")
+        Bot.send_msg(message="Бот запущен", user_id=user_id)
+    except ApiError as err:
+        if err.code == 15:
+            print(
+                "У Вашего приложения нет доступа к отправке сообщений. Подробнее тут: https://vk.com/dev/messages_api",
+                file=sys.stderr
+            )
+            thread.stop()
+            sys.exit(0)
 
     try:
         for event in listen(q):
@@ -75,13 +87,7 @@ def bot_thread(q: Queue):
 
 
 def main():
-    q = Queue()
-    balance = threading.Thread(target=balanced_thread, name="Balance Thread", args=(q, ))
-    bot = threading.Thread(target=bot_thread, name="Bot Thread", args=(q, ))
-    balance.start()
-    bot.start()
-
-    q.join()
+    thread.run()
 
 
 if __name__ == '__main__':

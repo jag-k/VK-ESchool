@@ -37,27 +37,38 @@ class Thread:
             self.groups[group] = self
             self.threads = []
             self.q = Queue()
+            self.q.run = False
             self.working_thread = []
 
     def add_thread(self, name: str = None, args: list = None):
         def _(func):
-            self.threads.append({"name": name, "args": args, "func": func})
+            self.threads.append({"name": name, "args": args or [], "func": func})
 
             def err_catcher(*args, **kwargs):
                 try:
                     func(*args, **kwargs)
-                except:
-                    traceback.print_exc()
-                    self.q.put(self.STOP_PROGRAM)
-                    sys.exit(1)
+                except Exception as err:
+                    print("Thread err:", err)
+                    if type(err) not in (SystemExit, KeyboardInterrupt):
+                        traceback.print_exc()
+                        self.stop()
             return err_catcher
         return _
 
+    def stop(self):
+        self.q.put(self.STOP_PROGRAM)
+        self.q.run = False
+        sys.exit(1)
+
     def run(self):
-        self.working_thread = [threading.Thread(target=t['func'], name=t['name'], args=tuple([q] + list(t['args'])))
+        self.working_thread = [threading.Thread(target=t['func'], name=t['name'],
+                                                args=tuple([self.q] + list(t['args'])))
                                for t in self.threads]
+
+        self.q.run = True
         for t in self.working_thread:
             t.start()
+
         self.q.join()
 
 
