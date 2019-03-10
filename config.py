@@ -1,6 +1,9 @@
 from os.path import join
 import configparser
-import json
+import threading
+from queue import Queue
+import traceback
+import sys
 
 settings = configparser.ConfigParser()
 settings.read("./data/settings.ini")
@@ -18,6 +21,44 @@ for key in secret:
     SECRET[key] = dict(secret[key])
 
 vk_data = SECRET.get('vk_data')
+
+
+class Thread:
+    groups = {}
+    STOP_PROGRAM = SystemExit("program stop")
+
+    def __init__(self, group=None):
+        if group in self.groups:
+            t = self.groups[group]
+            self.threads = t.threads
+            self.q = t.q
+            self.working_thread = t.working_thread
+        else:
+            self.groups[group] = self
+            self.threads = []
+            self.q = Queue()
+            self.working_thread = []
+
+    def add_thread(self, name: str = None, args: list = None):
+        def _(func):
+            self.threads.append({"name": name, "args": args, "func": func})
+
+            def err_catcher(*args, **kwargs):
+                try:
+                    func(*args, **kwargs)
+                except:
+                    traceback.print_exc()
+                    self.q.put(self.STOP_PROGRAM)
+                    sys.exit(1)
+            return err_catcher
+        return _
+
+    def run(self):
+        self.working_thread = [threading.Thread(target=t['func'], name=t['name'], args=tuple([q] + list(t['args'])))
+                               for t in self.threads]
+        for t in self.working_thread:
+            t.start()
+        self.q.join()
 
 
 # Constants and Types

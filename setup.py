@@ -3,7 +3,7 @@ import sys
 
 import vk_api
 
-PATH = "data/.secret"
+PATH = os.path.join(os.curdir, "data", ".secret")
 
 FILE = "secret.ini"
 

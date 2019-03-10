@@ -34,6 +34,7 @@ def listen(q: Queue) -> Iterator[VkBotEvent]:
 
 def bot_thread(q: Queue):
     print("Bot Started")
+    api.messages.send(message="Бот запущен")
     # Bot.send_msg(message="Бот запущен", user_id=user_id)
 
     try:
@@ -75,8 +76,8 @@ def bot_thread(q: Queue):
 
 def main():
     q = Queue()
-    balance = threading.Thread(target=balanced_thread, args=(q, ))
-    bot = threading.Thread(target=bot_thread, args=(q, ))
+    balance = threading.Thread(target=balanced_thread, name="Balance Thread", args=(q, ))
+    bot = threading.Thread(target=bot_thread, name="Bot Thread", args=(q, ))
     balance.start()
     bot.start()
 
