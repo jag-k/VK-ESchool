@@ -1,16 +1,29 @@
+import traceback
+import sys
+
 import vk_api
-from config import vk_data
 from vk_api.bot_longpoll import VkBotEvent
 from vk_api.keyboard import VkKeyboard as Keyboard
 
+from config import vk_data, DEBUG
+
 try:
-    session = vk_api.VkApi(vk_data["login"], vk_data["password"], api_version="5.89")
+    session = vk_api.VkApi(vk_data["login"], vk_data["password"], api_version="5.89",
+                           app_id=2685278,  # Kate Mobile App
+                           client_secret="hHbJug59sKJie78wjrH8"
+                           )
+    # session.server_auth()
     session.auth()
     group_id = vk_data["group_id"]
 
     api = session.get_api()  # type: vk_api.vk_api.VkApiMethod
+
 except Exception as err:
-    print(err)
+    if DEBUG:
+        traceback.print_exc()
+    else:
+        print(f"{type(err).__name__}: {err}", file=sys.stderr)
+
     from setup import api, session, group_id
 
 

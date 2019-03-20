@@ -74,6 +74,8 @@ class Thread:
 
 # Constants and Types
 
+DEBUG = True
+
 SLEEP_TIME = 30
 CARDS_DB = "cards_data"
 USER_STATES_DB = "user_states_data"
