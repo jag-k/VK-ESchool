@@ -37,7 +37,8 @@ class Bot:
         kb = kwargs.get("keyboard", kwargs.get("kb"))
         if kb and type(kb) == Keyboard:
             kwargs["keyboard"] = kb.get_keyboard()
-            del kwargs['kb']
+            if 'kb' in kwargs:
+                del kwargs['kb']
 
         return api.messages.send(
             message=message,
