@@ -28,23 +28,23 @@ while flag:
 
 else:
     groups = api.groups.get(extended=True, filter="admin")
-    print(f"У Вас есть {groups.get('count')} сообществ, которые Вы можете использовать:")
-    print(*map(lambda x: f'Сообщество "{x.get("name")}" (http://vk.com/{x.get("screen_name")}):\n'
-    f'    ID: {x.get("id")}', groups.get("items")), sep="\n\n")
+    print("У Вас есть %s сообществ, которые Вы можете использовать:" % groups.get('count'))
+    print(*map(lambda x: 'Сообщество "%s" (http://vk.com/%s):\n' % (x.get("name"), x.get("screen_name")) +
+                         '    ID: ' + str(x.get("id")), groups.get("items")), sep="\n\n")
 
     group_id = input("Введите ID группы: ")
     while True:
         try:
             res = api.groups.getById(group_id=group_id, fields="is_admin")[0]
             if res["is_admin"]:
-                print(f'Бот привязан у группе "{res["name"]}" (https://vk.com/{res["screen_name"]})')
+                print('Бот привязан у группе "%s" (https://vk.com/%s)' % (res['name'], res['screen_name']))
                 group_id = res["id"]
                 break
-            print(f'Вы не являетесь администратором группы "{res["name"]}", введите ID другой группы',
+            print('Вы не являетесь администратором группы "%s", введите ID другой группы' % {res["name"]},
                   file=sys.stderr)
 
         except Exception as err:
-            print(f"ОШИБКА ({type(err).__name__})! Повторите снова", file=sys.stderr)
+            print("ОШИБКА (%s)! Повторите снова" % type(err).__name__, file=sys.stderr)
 
         group_id = input("Введите ID группы: ")
 

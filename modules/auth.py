@@ -22,7 +22,7 @@ except Exception as err:
     if DEBUG:
         traceback.print_exc()
     else:
-        print(f"{type(err).__name__}: {err}", file=sys.stderr)
+        print(type(err).__name__ + ": " + str(err), file=sys.stderr)
 
     from setup import api, session, group_id
 

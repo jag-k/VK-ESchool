@@ -20,7 +20,7 @@ def listen(q: Queue) -> Iterator[VkBotEvent]:
     while q.run:
         try:
             event = q.get_nowait()
-            print(f"\x1b[34mTHREADING EVENT: {event}\x1b[0m")
+            print("\x1b[34mTHREADING EVENT: %s\x1b[0m" % event)
             if event:
                 if type(event) == dict:
                     yield event
@@ -51,11 +51,14 @@ def bot_thread(q: Queue):
             try:
                 if type(event) == dict:  # BALANCE EVENT
                     if event.get("type") == BALANCE_UPDATE or False:
-                        print(f"\x1b[32mBALANCE UPDATE: {event}\x1b[0m")
+                        print("\x1b[32mBALANCE UPDATE: %s\x1b[0m" % event)
                         print("Event", event)
                         msg = "💰 ИЗМЕНЕНИЕ БАЛАНСА: \n" +\
-                              '\n'.join(map(lambda x: f"  ► {x}: "
-                              f"{event.get('new_balance', {}).get('balance', {}).get(x, 0)}₽ ({event['change'][x]}₽)",
+                              '\n'.join(map(lambda x: "  ► {x}: " % x +
+                                                      "%s₽ (%s₽)" % (
+                                                          event.get('new_balance', {}).get('balance', {}).get(x, 0),
+                                                          event['change'][x]
+                                                      ),
                                             event['change'])) +\
                             '\n\n💵 Для проверки баланса, напишите "баланс".\n' \
                             '📃 Для дополнительной информации, отправьте "помощь"'

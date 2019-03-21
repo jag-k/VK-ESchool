@@ -37,7 +37,7 @@ def sync_get_balance(card):
     if req.status_code == 200:
         result = req.json()
         if result.get('type', "error") == "error":
-            print(f"Card {card} not found", file=stderr)
+            print("Card %s not found" % card, file=stderr)
 
         if result and result.get("type") == "balance":
             soup = bs(result.get("text"), features="lxml")
@@ -50,7 +50,7 @@ def sync_get_balance(card):
 
 
 async def get_balance(session, card):
-    print(f"\x1b[33mSearch {card}\x1b[0m")
+    print("\x1b[33mSearch %s\x1b[0m" % card)
     try:
         async with session.post("http://xn--58-6kc3bfr2e.xn--p1ai/ajax/",
                                 data={"card": card, "act": "FreeCheckBalance"},
@@ -64,7 +64,7 @@ async def get_balance(session, card):
                 try:
                     result = ujson.decode(raw)
                     if result.get('type', "error") == "error":
-                        print(f"Card {card} not found", file=stderr)
+                        print("Card %s not found" % card, file=stderr)
 
                     if result and result.get("type") == "balance":
                         soup = bs(result.get("text"), features="lxml")
@@ -76,10 +76,10 @@ async def get_balance(session, card):
                     return result
 
                 except ValueError:
-                    print(f'Card {card} is not JSON', file=stderr)
+                    print("Card %s is not JSON" % card, file=stderr)
                     return {}
     except aiohttp.ClientConnectionError:
-        print(f"Card {card} connection error", file=stderr)
+        print("Card %s connection error" % card, file=stderr)
         return {}
 
 

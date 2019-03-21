@@ -54,7 +54,7 @@ def message_handler(bot: Bot):
         }
         user_state.insert(user)
 
-    print(f"https://vk.com/id{bot.from_id} ({State.get_state(bot).get('state')}): {bot.text}")
+    print("https://vk.com/id%s (%s): %s" % (bot.from_id, State.get_state(bot).get('state'), bot.text))
     return State.use_func(user.get("state"), bot)
 
 
