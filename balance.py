@@ -50,7 +50,7 @@ def sync_get_balance(card):
 
 
 async def get_balance(session, card):
-    print("\x1b[33mSearch %s\x1b[0m" % card)
+    logging.debug("\x1b[33mSearch %s\x1b[0m" % card)
     try:
         async with session.post("http://xn--58-6kc3bfr2e.xn--p1ai/ajax/",
                                 data={"card": card, "act": "FreeCheckBalance"},
@@ -95,7 +95,7 @@ async def process_card(session, card, cards_data, q):
     res = await get_balance(session, card)  # type: dict
     if res and not res.get("type") == "error":
         old_balance = list(filter(lambda x: x.get("card") == card, cards_data))[0]
-        print(old_balance)
+        logging.debug(old_balance)
         if res["balance"] != old_balance['balance']:
             q.put_nowait({
                 "type": BALANCE_UPDATE,
@@ -122,7 +122,7 @@ async def check_cards_balance(q):
                 ) for card in dat
             ]
             res = await asyncio.gather(*tasks)
-            print(res)
+            logging.debug(res)
 
             if not q.run:
                 break

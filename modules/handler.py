@@ -60,24 +60,37 @@ def message_handler(bot: Bot):
 
 # KEYBOARDS
 
-MAIN_KB = Keyboard()
-MAIN_KB.add_button("Баланс", Color.POSITIVE)
-MAIN_KB.add_button("Перепривязать карту", Color.DEFAULT)
-MAIN_KB.add_line()
-MAIN_KB.add_button("Справка", Color.PRIMARY)
-MAIN_KB.add_button("О приложении", Color.PRIMARY)
-MAIN_KB.add_line()
-MAIN_KB.add_button("Отписаться", Color.NEGATIVE)
+def create_kb(kb_list: list, one_time=False) -> Keyboard:
+    k = Keyboard(one_time)
+    for row in kb_list:
+        for button in row:
+            if type(button) in (list, tuple):
+                k.add_button(*button)
+            elif type(button) == dict:
+                k.add_button(**button)
+            else:
+                k.add_button(button)
+        k.add_line()
+    return k
 
-HELP_ONLY_KB = Keyboard()
-HELP_ONLY_KB.add_button("Справка", Color.PRIMARY)
 
-BOOL_KB = Keyboard(True)
-BOOL_KB.add_button("Да", Color.NEGATIVE)
-BOOL_KB.add_button("Нет", Color.POSITIVE)
+MAIN_KB = create_kb([
+    [("Баланс", Color.POSITIVE), ("Перепривязать карту", Color.DEFAULT)],
+    [("Справка", Color.PRIMARY), ("О приложении", Color.PRIMARY)],
+    [("Отписаться", Color.NEGATIVE)]
+])
 
-START_KB = Keyboard(True)
-START_KB.add_button("Начать", Color.PRIMARY, {"command": "start"})
+HELP_ONLY_KB = create_kb([
+    [("Справка", Color.PRIMARY)]
+])
+
+BOOL_KB = create_kb([
+    [("Да", Color.NEGATIVE), ("Нет", Color.POSITIVE)]
+], True)
+
+START_KB = create_kb([
+    [("Начать", Color.PRIMARY, {"command": "start"})]
+], True)
 
 
 # STATES

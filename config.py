@@ -1,9 +1,18 @@
-from os.path import join
 import configparser
-import threading
-from queue import Queue
-import traceback
+import logging
+import os
 import sys
+import threading
+import time
+import traceback
+from queue import Queue
+
+
+if not os.path.isdir('logs'):
+    os.mkdir('logs')
+
+logging.basicConfig(format=u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]:  %(message)s',
+                    level=logging.DEBUG, filename="logs/" + time.asctime() + '.log')
 
 settings = configparser.ConfigParser()
 settings.read("./data/settings.ini")
