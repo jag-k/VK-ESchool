@@ -50,7 +50,7 @@ def sync_get_balance(card):
 
 
 async def get_balance(session, card):
-    logging.debug("\x1b[33mSearch %s\x1b[0m" % card)
+    logging.debug("Search %s..." % card)
     try:
         async with session.post("http://xn--58-6kc3bfr2e.xn--p1ai/ajax/",
                                 data={"card": card, "act": "FreeCheckBalance"},

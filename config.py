@@ -12,7 +12,7 @@ from queue import Queue
 if not os.path.isdir('logs'):
     os.mkdir('logs')
 
-logging.basicConfig(format=u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]:  %(message)s',
+logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s]   %(filename)s[LINE:%(lineno)d]: %(message)s',
                     level=logging.DEBUG, filename="logs/" + time.asctime() + '.log')
 
 settings = configparser.ConfigParser()
