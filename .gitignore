@@ -105,7 +105,11 @@ venv.bak/
 
 # PyCharm
 .idea/
+
+# Project files
 /vk_config.v2.json
 data/
 database/*
 vk_config.v2.json
+logs/*
+logs/
