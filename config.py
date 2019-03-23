@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 import traceback
+from os.path import join
 from queue import Queue
 
 
@@ -102,6 +103,15 @@ ABOUT_STRING = 'ℹ ️Данный бот создан для отслежив�
                '"Электронная школа" (http://школа58.рф). Для этого Вам нужно ввести номер своей карты, ' \
                'и в дальнейшем Вам будут приходить уведомления об изменении баланса счёта.\n\n' \
                'Так же, здесь Вы можете проверять свой баланс в любое время суток.'
+
+
+folder = "database"
+extension = "json"
+if not os.path.isdir(folder):
+    os.mkdir(folder)
+
+for i in filter(lambda x: x.lower().endswith("_db"), dir()):
+    exec("%s = '%s.%s'" % (i, join(folder, eval(i)), extension))
 
 if __name__ == '__main__':
     print(SETTINGS)

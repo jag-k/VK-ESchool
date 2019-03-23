@@ -71,6 +71,7 @@ def create_kb(kb_list: list, one_time=False) -> Keyboard:
             else:
                 k.add_button(button)
         k.add_line()
+    del k.lines[-1]
     return k
 
 
