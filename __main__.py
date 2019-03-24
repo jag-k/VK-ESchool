@@ -10,25 +10,30 @@ from modules.handler import message_handler, TinyDB, Query
 from config import *
 from balance import BALANCE_UPDATE
 
-longpoll = VkBotLongPoll(session, group_id, wait=10)
+from requests.exceptions import ReadTimeout
+
+longpoll = VkBotLongPoll(session, group_id, wait=25)
 thread = Thread("bot")
 
 
 # Functions
 
 def listen(q: Queue) -> Iterator[VkBotEvent]:
-    while q.run:
-        try:
-            event = q.get_nowait()
-            print("\x1b[34mTHREADING EVENT: %s\x1b[0m" % event)
-            if event:
-                if type(event) == dict:
-                    yield event
-                else:
-                    yield from event
-        except Empty:
-            pass
-        yield from longpoll.check()
+    try:
+        while q.run:
+            try:
+                event = q.get_nowait()
+                print("\x1b[34mTHREADING EVENT: %s\x1b[0m" % event)
+                if event:
+                    if type(event) == dict:
+                        yield event
+                    else:
+                        yield from event
+            except Empty:
+                pass
+            yield from longpoll.check()
+    except ReadTimeout:
+        yield from listen(q)
 
 
 @thread.add_thread("Bot Thread")
