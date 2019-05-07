@@ -8,12 +8,12 @@ import traceback
 from os.path import join
 from queue import Queue
 
-
+TIME_FORMAT_STRING = "%d-%m-%Y %H:%M"
 if not os.path.isdir('logs'):
     os.mkdir('logs')
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s]   %(filename)s[LINE:%(lineno)d]: %(message)s',
-                    level=logging.DEBUG, filename="logs/" + time.asctime() + '.log')
+                    level=logging.DEBUG, filename="logs/" + time.strftime(TIME_FORMAT_STRING) + '.log')
 
 settings = configparser.ConfigParser()
 settings.read("./data/settings.ini")

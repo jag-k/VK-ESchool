@@ -41,13 +41,15 @@ def bot_thread(q: Queue):
     print("\x1b[32;1mBot Started\x1b[0m")
     logging.info("Bot Started")
     try:
-        # api.messages.send(message="Бот запущен")
         Bot.send_msg(message="Бот запущен", user_id=user_id)
     except ApiError as err:
         if err.code == 15:
             print(
                 "У Вашего приложения нет доступа к отправке сообщений. Подробнее тут: https://vk.com/dev/messages_api",
                 file=sys.stderr
+            )
+            logging.error(
+                "У Вашего приложения нет доступа к отправке сообщений. Подробнее тут: https://vk.com/dev/messages_api"
             )
             thread.stop()
             sys.exit(0)
@@ -60,7 +62,7 @@ def bot_thread(q: Queue):
                         print("\x1b[32mBALANCE UPDATE: %s\x1b[0m" % event)
                         print("Event", event)
                         msg = "💰 ИЗМЕНЕНИЕ БАЛАНСА: \n" +\
-                              '\n'.join(map(lambda x: "  ► {x}: " % x +
+                              '\n'.join(map(lambda x: "  ► %s: " % x +
                                                       "%s₽ (%s₽)" % (
                                                           event.get('new_balance', {}).get('balance', {}).get(x, 0),
                                                           event['change'][x]
@@ -79,17 +81,26 @@ def bot_thread(q: Queue):
                 print('\n')
                 traceback.print_exc()
                 error_msg = "ERROR (%s): %s" % (type(err).__name__, err)
+                logging.error(error_msg)
                 Bot.send_msg(message=error_msg, user_id=user_id)
 
     except ConnectionError:
         print("CONNECTION ERROR", file=sys.stderr)
+        logging.error("CONNECTION ERROR")
 
     except KeyboardInterrupt or SystemExit:
         print("System Exit")
+        logging.warning("System Exit")
+
+    except BaseException as err:
+        print("%s: %s" % (type(err).__name__, err))
+        logging.error("%s: %s" % (type(err).__name__, err))
+        raise err
 
     finally:
         Bot.send_msg(message="Бот остановлен (финальная отправка в лс)", user_id=user_id)
         print("Bot Stopped", file=sys.stderr)
+        logging.warning("Bot Stopped")
 
 
 def main():
